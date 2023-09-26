@@ -18,42 +18,48 @@ pub enum Colour {
  * - Write well structured and clean code!
  */
 
+// pub struct Piece{
+//     white: bool,
+//     killed: bool,
+//     x_pos: i8,
+//     y_pos: i8
+// }
+
+// impl Piece{
+//     pub fn new(is_white: bool) -> Piece{
+//         let white: bool = false;
+//         if white{
+//             white = true;
+//         }
+
+//         Piece{
+//             white: is_white,
+            
+//         }
+//     }
+
+//     pub fn Pawn(){
+
+//     }
+// }
 
 
-pub struct Piece{
-    white: bool,
-    killed: bool,
-    x_pos: i8,
-    y_pos: i8
-}
 
-impl Piece{
-    pub fn new(white: bool) -> Piece{
-        let white: bool = false;
-        if white{
-            white = true;
-        }
+// pub struct Board{
+//     board_layout: [[String; 8]; 8],
+// }
 
-        Piece{
-            white: white.
-        }
-    }
-}
-
-pub struct Board{
-    board_layout: [[String; 8]; 8],
-}
-
-impl Board{
-
-}
+// impl Board{
+    
+// }
 
 pub struct Game{
     /* save board, active colour, ... */
     state: GameState,
     black: u64,
     white: u64,
-    kings: u64
+    kings: u64,
+    game_board: [[String;8];8]
 }
 
 impl Game{
@@ -192,5 +198,7 @@ pub fn main(){
     let game: Game = Game::new();
 
     println!("{:?}", game_board_format(game.game_board));
-    println!("{:?}", game.make_move(String::from("22"), String::from("23")))
+    // println!("{:?}", game.make_move(String::from("22"), String::from("23")))
+
+    
 }
