@@ -53,6 +53,97 @@ pub enum Colour {
     
 // }
 
+pub struct Move<'a>{
+    game_board: &'a [[String;8];8],
+    x1: i8,
+    x2: i8,
+    y1: i8,
+    y2: i8
+}
+
+impl <'a> Move <'a>{
+    fn new_move(game_board: &[[String;8];8], x1:i8, y1:i8, x2:i8, y2:i8) -> Move{
+        Move{
+            game_board: game_board,
+            x1: x1 - 1,
+            x2: x2 - 1,
+            y1: y1 - 1,
+            y2: y2 - 1
+        }
+    }
+
+    pub fn initialise_new_move(self){
+        if !self.check_for_piece_in_position(&self.x1, &self.y1){
+            return println!("There is no piece in that position!");
+        }
+        let piece: String = self.game_board[self.y1 as usize][self.x1 as usize].clone();
+        match piece.as_str(){
+            "w_P" => self.pawn(),
+            "b_P" => self.pawn(),
+            "w_R" => self.rook(),
+            "b_R" => self.rook(),
+            "w_Kn" => self.knight(),
+            "b_Kn" => self.knight(),
+            "w_Bi" => self.bishop(),
+            "b_Bi" => self.bishop(),
+            "w_Q" => self.queen(),
+            "b_Q" => self.queen(),
+            "w_K" => self.king(),
+            "b_K" => self.king(),
+            _ => println!("invalid piece name found!")
+        } 
+    }
+
+    fn check_for_piece_in_position(&self, x:&i8 ,y:&i8) -> bool{
+        if self.game_board[*y as usize][*x as usize] == String::from("*"){
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+
+    fn pawn(&self){
+        if self.x1 == self.x2 && self.y1 == self.y2{
+            println!("You can't move to the same position!");
+            return
+        }
+        else if self.x1 != self.x2 && self.y1 != self.y2 && !self.check_for_piece_in_position(&self.x2, &self.y2){
+            println!("You can't move diagonally!");
+            return
+        }
+        else if self.x1 == self.x2 && self.y1 != self.y2{
+            println!("You can't move horizontally!");
+            return
+        }
+        else if self.x2 != self.x1 + 1 && self.y1 == self.y2{
+            println!("You can't move that far!");
+            return
+        }
+        println!("move granted!");
+    }
+
+    fn rook(&self){
+
+    }
+
+    fn knight(&self){
+
+    }
+
+    fn bishop(&self){
+
+    }
+
+    fn queen(&self){
+
+    }
+
+    fn king(&self){
+
+    }
+}
+
 pub struct Game{
     /* save board, active colour, ... */
     state: GameState,
@@ -166,7 +257,7 @@ impl  fmt::Debug for Game{
 
 }
 
-fn game_board_format(game_board: [[String;8];8]){
+fn game_board_format(game_board: &[[String;8];8]){
     print!("+------------------------------------------+");
     for hosrisontal_grid in game_board{
         for (i, piece_name) in hosrisontal_grid.iter().enumerate(){
@@ -197,8 +288,12 @@ pub fn main(){
 
     let game: Game = Game::new();
 
-    println!("{:?}", game_board_format(game.game_board));
+    println!("{:?}", game_board_format(&game.game_board));
     // println!("{:?}", game.make_move(String::from("22"), String::from("23")))
 
+    Move::new_move(&game.game_board, 1, 2, 3, 4).initialise_new_move();
+
+
+    println!("\n\n");
     
 }
