@@ -6,6 +6,6 @@ Chackkks go brrrr
 ehm, good luck
 
 
-my  discord user id: 235420134372540416 
+my discord user name: `ilmal_` 
 
 :)
