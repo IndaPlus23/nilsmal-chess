@@ -2,16 +2,10 @@ use std::fmt;
 
 // #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum GameState {
-    InProgress,
-    Check,
-    GameOver,
+    InProgress(bool),
+    Check(bool),
+    GameOver(bool),
 }
-
-pub enum Colour {
-    White,
-    Black,
-}
-
 
 /* IMPORTANT:
  * - Document well!
@@ -31,10 +25,10 @@ impl Move{
     fn new_move(game_board: [[String;8];8], x1:i8, y1:i8, x2:i8, y2:i8, move_checker: bool) -> Move{
         Move{
             game_board: game_board,
-            x1: x1 - 1,
-            x2: x2 - 1,
-            y1: y1 - 1,
-            y2: y2 - 1,
+            x1: x1,
+            x2: x2,
+            y1: y1,
+            y2: y2,
             move_checker: move_checker,
             move_granted: false
         }
@@ -179,13 +173,13 @@ impl Move{
             self.move_granted = true;
             return self.return_board().clone();
         }
-        println!("move granted!");
+        if !self.move_checker{println!("move granted!");}
         if self.check_for_piece_in_position(&self.x2, &self.y2){
-            println!("The target is populated!");
+            if !self.move_checker{println!("The target is populated!");}
             self.take_piece();
         }
         else{
-            println!("The target is empty!");
+            if !self.move_checker{println!("The target is empty!");}
             self.move_piece();
         }
         return self.return_board().clone();
@@ -193,7 +187,7 @@ impl Move{
 
     fn pawn(&mut  self, is_white: bool) -> [[String;8];8]{
         if self.x1 != self.x2 && self.y1 != self.y2 && !self.check_for_piece_in_position(&self.x2, &self.y2){
-            println!("You can't move diagonally!");
+            if !self.move_checker{println!("You can't move diagonally!");}
             return self.return_board().clone();
         }
         else if self.x1 != self.x2 && self.y1 == self.y2{
@@ -201,7 +195,7 @@ impl Move{
             return self.return_board().clone();
         }
         else if self.y2 != self.y1 + 1 && self.x1 == self.x2 && is_white || self.y2 != self.y1 + 2 && self.x1 == self.x2 && self.y1 != 1 && is_white || self.y2 != self.y1 - 1 && self.x1 == self.x2 && !is_white || self.y2 != self.y1 - 2 && self.x1 == self.x2 && self.y1 != 6 && !is_white { 
-            println!("You can't move that far!");
+            if !self.move_checker{println!("You can't move that far!");}
             return self.return_board().clone();
         }
         if self.check_if_piece_moves_though_another_piece(){
@@ -213,7 +207,7 @@ impl Move{
 
     fn rook(&mut self) -> [[String;8];8]{
         if self.x1 != self.x2 && self.y1 != self.y2{
-            println!("You can't move diagonally!");
+            if !self.move_checker{println!("You can't move diagonally!");}
             return self.return_board().clone();
         }
         if self.check_if_piece_moves_though_another_piece(){
@@ -225,10 +219,10 @@ impl Move{
 
     fn knight(&mut self) -> [[String;8];8]{
         if self.x1 != self.x2 && self.y1 == self.y2{
-            println!("You can't move horizontally!");
+            if !self.move_checker{println!("You can't move horizontally!");}
             return self.return_board().clone();
         } else if self.x1 == self.x2 && self.y1 != self.y2{
-            println!("You can't move vertically!");
+            if !self.move_checker{println!("You can't move vertically!");}
             return self.return_board().clone();
         }
         else if self.x1 == self.x2 + 1 && self.y1 == self.y2 + 2 ||
@@ -242,7 +236,7 @@ impl Move{
             return self.common_piece_move_logic();
         }
         else{
-            println!("You can't move that far!");
+            if !self.move_checker{println!("You can't move that far!");}
             return self.return_board().clone();
         }
     }
@@ -260,7 +254,7 @@ impl Move{
             return self.common_piece_move_logic();
         }
         else{
-            println!("You can't move that far!");
+            if !self.move_checker{println!("You can't move that far!");}
             return self.return_board().clone();
         }
     }
@@ -274,7 +268,7 @@ impl Move{
             return self.common_piece_move_logic();
         }
         else{
-            println!("You can't move that far!");
+            if !self.move_checker{println!("You can't move that far!");}
             return self.return_board().clone();
         }
     }
@@ -302,10 +296,10 @@ impl Move{
             return self.common_piece_move_logic(); 
         }
         else{
-            println!("You can't move that far!");
+            if !self.move_checker{println!("You can't move that far!");}
             return self.return_board().clone();
         }
-        println!("You can't move that far!");
+        if !self.move_checker{println!("You can't move that far!");}
         return self.return_board().clone();
     }
 }
@@ -314,6 +308,7 @@ pub struct Game{
     /* save board, active colour, ... */
     state: GameState,
     is_white_turn: bool,
+    is_check: bool,
     game_board: [[String;8];8]
 }
 
@@ -330,33 +325,9 @@ impl Game{
         let black: String = String::from("b_");
         Game {
             /* initialise board, set active colour to white, ... */
-            state: GameState::InProgress,
+            state: GameState::InProgress(false),
             is_white_turn: true,
-            // game_board: [
-            //     [format!("{}{}", white, rook), 
-            //      format!("{}{}", white, knight), 
-            //      format!("{}{}", white, bishop), 
-            //      format!("{}{}", white, queen), 
-            //      format!("{}{}", white, king), 
-            //      format!("{}{}", white, bishop), 
-            //      format!("{}{}", white, knight), 
-            //      format!("{}{}", white, rook)
-            //     ],
-            //     [();8].map(|_| format!("{}{}", white, pawn)),
-            //     [();8].map(|_| String::from("*")),
-            //     [();8].map(|_| String::from("*")),
-            //     [();8].map(|_| String::from("*")),
-            //     [();8].map(|_| String::from("*")),
-            //     [();8].map(|_| format!("{}{}", black, pawn)),
-            //     [format!("{}{}", black, rook), 
-            //     format!("{}{}", black, knight), 
-            //     format!("{}{}", black, bishop), 
-            //     format!("{}{}", black, queen), 
-            //     format!("{}{}", black, king), 
-            //     format!("{}{}", black, bishop), 
-            //     format!("{}{}", black, knight), 
-            //     format!("{}{}", black, rook)
-            //    ]
+            is_check: false,
             game_board: [
                 [format!("{}{}", white, rook), 
                  format!("{}{}", white, knight), 
@@ -367,7 +338,7 @@ impl Game{
                  format!("{}{}", white, knight), 
                  format!("{}{}", white, rook)
                 ],
-                [();8].map(|_| String::from("*")),
+                [();8].map(|_| format!("{}{}", white, pawn)),
                 [();8].map(|_| String::from("*")),
                 [();8].map(|_| String::from("*")),
                 [();8].map(|_| String::from("*")),
@@ -382,39 +353,169 @@ impl Game{
                 format!("{}{}", black, knight), 
                 format!("{}{}", black, rook)
                ]
+            // game_board: [
+            //     [format!("{}{}", black, pawn), 
+            //      format!("{}{}", white, knight), 
+            //      format!("{}{}", white, bishop), 
+            //      format!("{}{}", white, queen), 
+            //      format!("{}{}", white, king), 
+            //      format!("{}{}", white, bishop), 
+            //      format!("{}{}", white, knight), 
+            //      format!("{}{}", white, rook)
+            //     ],
+            //     [();8].map(|_| String::from("*")),
+            //     [();8].map(|_| String::from("*")),
+            //     [();8].map(|_| String::from("*")),
+            //     [();8].map(|_| String::from("*")),
+            //     [();8].map(|_| String::from("*")),
+            //     [();8].map(|_| format!("{}{}", black, pawn)),
+            //     [format!("{}{}", black, rook), 
+            //     format!("{}{}", black, knight), 
+            //     format!("{}{}", black, bishop), 
+            //     format!("{}{}", black, queen), 
+            //     format!("{}{}", black, king), 
+            //     format!("{}{}", black, bishop), 
+            //     format!("{}{}", black, knight), 
+            //     format!("{}{}", black, rook)
+            //    ]
             ] 
         }
     }
 
-    fn update_game_board(&mut self, game_board: [[String;8];8]){
+    pub fn make_move(&mut self, from: String, to:String){
+        let mut from_arr: Vec<String> = from.chars().map(|char| char.to_string()).collect();
+        let mut to_arr: Vec<String> = to.chars().map(|char| char.to_string()).collect();
+
+        fn match_function(mut input_vector:Vec<String>) -> Vec<String>{
+            let x1: i8 = match input_vector[0].as_str(){
+                "A" => 1,
+                "B" => 2,
+                "C" => 3,
+                "D" => 4,
+                "E" => 5,
+                "F" => 6,
+                "G" => 7,
+                "H" => 8,
+                _ => {
+                    println!("Invalid move input!");
+                    return input_vector;
+                }
+            };
+            input_vector[0] = x1.to_string();
+            return input_vector;
+        }
+        from_arr = match_function(from_arr);
+        to_arr = match_function(to_arr);
+
+        let x1: i8 = from_arr[0].parse::<i8>().unwrap();
+        let y1: i8 = from_arr[1].parse::<i8>().unwrap();
+        let x2: i8 = to_arr[0].parse::<i8>().unwrap();
+        let y2: i8 = to_arr[1].parse::<i8>().unwrap();
+
+        println!("{} {}", x1, y1);
+        println!("{} {}", x2, y2);
+
+        let mut _move = Move::new_move(self.game_board.clone(), x1 - 1, y1 - 1, x2 - 1, y2 - 1, false);
+        _move.initialise_new_move();
+
+        self.update_game_board(_move.game_board.clone());
+
+        println!("{:?}", game_board_format(&self.game_board));
+
+    }
+
+    pub fn update_game_board(&mut self, game_board: [[String;8];8]){
         self.game_board = game_board;
+        self.is_check = self.is_check();
+        GameState::Check(self.is_check);
+        GameState::InProgress(true);
+        GameState::GameOver(false);
         self.is_white_turn = !self.is_white_turn;
     }
 
     /// Set the piece type that a peasant becames following a promotion.
     pub fn set_promotion(&mut self, x:i8, y:i8, piece: String) -> () {
-        if piece.contains("Q"){
-            print("You can't promote to king!");
+        let x_index: i8 = x - 1;
+        let y_index: i8 = y - 1;
+        if piece.contains("K"){
+            println!("You can't promote to king!");
             return
-        }
-        if self.game_board[y as usize][x as usize].contains("P"){
-            if self.game_board[y as usize][x as usize].contains("w_") && y == 7{
-                self.game_board[y as usize][x as usize] = format!("w_{}", piece);
+        } 
+        if self.game_board[y_index as usize][x_index as usize].contains("P"){
+            if self.game_board[y_index as usize][x_index as usize].contains("w_") && y == 8{
+                println!("Promoting to: {}{}", "w_", piece);
+                self.game_board[y_index as usize][x_index as usize] = format!("w_{}", piece);
             }
-            else if self.game_board[y as usize][x as usize].contains("b_") && y == 0{
-                self.game_board[y as usize][x as usize] = format!("b_{}", piece);
+            else if self.game_board[y_index as usize][x_index as usize].contains("b_") && y == 1{
+                self.game_board[y_index as usize][x_index as usize] = format!("b_{}", piece);
+                println!("Promoting to: {}{}", "b_", piece);
             }else{
                 println!("You can't promote!");
             }
+        } else{
+            println!("You can't promote pieces other than Pawns!");
         }
     }
 
-    /// If a piece is standing on the given tile, return all possible
-    /// new positions of that piece. Don't forget to the rules for check.
-    ///
-    /// (optional) Don't forget to include en passent and castling.
-    pub fn get_possible_moves(&self, postion: String) -> Option<Vec<String>> {
-        None
+    pub fn get_all_possible_moves(&mut self, x: i8, y:i8) -> Vec<[i8;2]>{
+        let mut move_vector: Vec<[i8;2]> = Vec::new();
+        for i in 1..9{
+            for j in 1..9{
+                println!("Moving pice: {} {} to position: {} {}", x, y, i, j);
+                // create_move(game, x, y, i, j, true).initialise_new_move();
+                let mut _move:Move = Move::new_move(self.game_board.clone(), x, y, i, j, true);
+                _move.initialise_new_move();
+                if _move.move_granted{
+                    move_vector.push([i, j])
+                }
+            }
+        }
+        println!("All possible moves for: {} {} is:", x, y);
+    
+        for e in move_vector.iter(){
+            println!("{} {}", e[0], e[1]);
+        }
+
+        move_vector
+    }
+
+    pub fn is_check(&self) -> bool{
+        let mut king_position: [[i8;2];2] = [[0,0], [0,0]];
+        for i in 0..8{
+            for j in 0..8{
+                if self.game_board[i][j].contains("w_K"){
+                    king_position[0][0] = i as i8;
+                    king_position[0][1] = j as i8;
+                }
+                if self.game_board[i][j].contains("b_K"){
+                    king_position[1][0] = i as i8;
+                    king_position[1][1] = j as i8;
+                }
+            }
+        }
+
+        for i in 0..8{
+            for j in 0..8{
+                if self.game_board[i][j].contains("b_"){
+                    let mut _move:Move = Move::new_move(self.game_board.clone(), j as i8, i as i8, king_position[0][1], king_position[0][0], true);
+                    _move.initialise_new_move();
+                    if _move.move_granted{
+                        println!("Black king is in check!");
+                        return true;
+                    }
+                }
+                if self.game_board[i][j].contains("w_"){
+                    let mut _move:Move = Move::new_move(self.game_board.clone(), j as i8, i as i8, king_position[1][1], king_position[1][0], true);
+                    _move.initialise_new_move();
+                    if _move.move_granted{
+                        println!("White king is in check!");
+                        return true;
+                    }
+                }
+            }
+        }
+
+        false
     }
 }
 
@@ -475,26 +576,6 @@ fn game_board_format(game_board: &[[String;8];8]){
     print!("\n+------------------------------------------+\n");
 }
 
-fn get_all_possible_moves(game: &mut Game, x: i8, y:i8){
-    let mut move_vector: Vec<[i8;2]> = Vec::new();
-    for i in 1..9{
-        for j in 1..9{
-            println!("Moving pice: {} {} to position: {} {}", x, y, i, j);
-            // create_move(game, x, y, i, j, true).initialise_new_move();
-            let mut _move:Move = Move::new_move(game.game_board.clone(), x, y, i, j, true);
-            _move.initialise_new_move();
-            if _move.move_granted{
-                move_vector.push([i, j])
-            }
-        }
-    }
-    println!("All possible moves for: {} {} is:", x, y);
-
-    for e in move_vector.iter(){
-        println!("{} {}", e[0], e[1]);
-    }
-}
-
 fn create_move(game: &Game, x1: i8, y1: i8, x2: i8, y2: i8, move_checker: bool) -> [[String; 8]; 8] {
     let mut _move = Move::new_move(game.game_board.clone(), x1, y1, x2, y2, move_checker);
     _move.initialise_new_move();
@@ -506,29 +587,12 @@ pub fn main(){
 
     let mut game: Game = Game::new();
 
-    println!("{:?}", game_board_format(&game.game_board));
-
-    game.update_game_board(create_move(&game,5, 1, 5, 2, false));
-
-    println!("{:?} \n {}", game_board_format(&game.game_board), &game.is_white_turn);
-    
-    game.update_game_board(create_move(&game,5, 2, 5, 3, false));
-    
-    println!("{:?} \n {}", game_board_format(&game.game_board), &game.is_white_turn);
+    game.make_move(String::from("D2"), String::from("D3"));
+    game.make_move(String::from("D3"), String::from("D4"));
+    game.make_move(String::from("D4"), String::from("D5"));
+    game.make_move(String::from("D5"), String::from("D6"));
 
 
-    game.update_game_board(create_move(&game,5, 3, 4, 2, false));
-    
-    println!("{:?} \n {}", game_board_format(&game.game_board), &game.is_white_turn);
-
-
-    game.update_game_board(create_move(&game,4, 2, 3, 2, false));
-    
-    println!("{:?} \n {}", game_board_format(&game.game_board), &game.is_white_turn);
-
-    game.set_promotion(1, 1, String::from("Q"));
-
-    get_all_possible_moves(&mut game, 1, 1);
 
     println!("\n\n");
     
