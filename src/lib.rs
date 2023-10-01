@@ -164,13 +164,10 @@ impl Move{
             self.move_granted = true;
             return self.return_board().clone();
         }
-        if !self.move_checker{println!("move granted!");}
         if self.check_for_piece_in_position(&self.x2, &self.y2){
-            if !self.move_checker{println!("The target is populated!");}
             self.take_piece();
         }
         else{
-            if !self.move_checker{println!("The target is empty!");}
             self.move_piece();
         }
         return self.return_board().clone();
@@ -390,7 +387,7 @@ impl Game{
         }
     }
 
-    pub fn new_with_custom_board() -> Game{
+    pub fn new_with_custom_board(game_board_number:i8) -> Game{
         let pawn: String = String::from("P");
         let rook: String = String::from("R");
         let knight: String = String::from("Kn");
@@ -399,12 +396,9 @@ impl Game{
         let king: String = String::from("K");
         let white: String = String::from("w_");
         let black: String = String::from("b_");
-        Game {
-            /* initialise board, set active colour to white, ... */
-            state: GameState::InProgress(false),
-            is_white_turn: true,
-            is_check: false,
-            game_board: [
+
+        let mut game_board = match game_board_number {
+            1 => [
                 [format!("{}{}", white, rook), 
                  format!("{}{}", white, knight), 
                  format!("{}{}", white, bishop), 
@@ -429,7 +423,84 @@ impl Game{
                 format!("{}{}", black, knight), 
                 format!("{}{}", black, rook)
                ]
-            ] 
+            ],
+            2 => [
+                [String::from("*"), 
+                 String::from("*"), 
+                 String::from("*"), 
+                 format!("{}{}", black, pawn), 
+                 String::from("*"), 
+                 String::from("*"), 
+                 String::from("*"), 
+                 String::from("*")
+                ],
+                [();8].map(|_| String::from("*")),
+                [();8].map(|_| String::from("*")),
+                [();8].map(|_| String::from("*")),
+                [();8].map(|_| String::from("*")),
+                [();8].map(|_| String::from("*")),
+                [();8].map(|_| String::from("*")),
+                [();8].map(|_| String::from("*"))
+            ],
+            3 => [
+                [String::from("*"), 
+                 String::from("*"), 
+                 String::from("*"), 
+                 format!("{}{}", white, king), 
+                 String::from("*"), 
+                 String::from("*"), 
+                 String::from("*"), 
+                 String::from("*")
+                ],
+                [();8].map(|_| String::from("*")),
+                [();8].map(|_| String::from("*")),
+                [();8].map(|_| String::from("*")),
+                [();8].map(|_| String::from("*")),
+                [String::from("*"), 
+                String::from("*"), 
+                String::from("*"), 
+                String::from("*"), 
+                format!("{}{}", black, queen), 
+                String::from("*"), 
+                String::from("*"), 
+                String::from("*")
+               ],
+                [();8].map(|_| String::from("*")),
+                [();8].map(|_| String::from("*"))
+            ],
+            _ => [
+                [format!("{}{}", white, rook), 
+                 format!("{}{}", white, knight), 
+                 format!("{}{}", white, bishop), 
+                 format!("{}{}", white, queen), 
+                 format!("{}{}", white, king), 
+                 format!("{}{}", white, bishop), 
+                 format!("{}{}", white, knight), 
+                 format!("{}{}", white, rook)
+                ],
+                [();8].map(|_| String::from("*")),
+                [();8].map(|_| String::from("*")),
+                [();8].map(|_| String::from("*")),
+                [();8].map(|_| String::from("*")),
+                [();8].map(|_| String::from("*")),
+                [();8].map(|_| format!("{}{}", black, pawn)),
+                [format!("{}{}", black, rook), 
+                format!("{}{}", black, knight), 
+                format!("{}{}", black, bishop), 
+                format!("{}{}", black, queen), 
+                format!("{}{}", black, king), 
+                format!("{}{}", black, bishop), 
+                format!("{}{}", black, knight), 
+                format!("{}{}", black, rook)
+               ]
+            ]
+        };
+        Game {
+            /* initialise board, set active colour to white, ... */
+            state: GameState::InProgress(false),
+            is_white_turn: true,
+            is_check: false,
+            game_board
         }
     }
 
@@ -611,7 +682,7 @@ impl Game{
                     let mut _move:Move = Move::new_move(self.game_board.clone(), j as i8, i as i8, king_position[0][1], king_position[0][0], true);
                     _move.initialise_new_move();
                     if _move.move_granted{
-                        println!("Black king is in check!");
+                        println!("White king is in check!");
                         return true;
                     }
                 }
@@ -619,7 +690,7 @@ impl Game{
                     let mut _move:Move = Move::new_move(self.game_board.clone(), j as i8, i as i8, king_position[1][1], king_position[1][0], true);
                     _move.initialise_new_move();
                     if _move.move_granted{
-                        println!("White king is in check!");
+                        println!("Black king is in check!");
                         return true;
                     }
                 }
@@ -707,19 +778,7 @@ fn position_board(){
 }
 
 pub fn main(){
-    println!("This is running from main.rs!");
 
-    // let mut game: Game = Game::new();
-    let mut game: Game = Game::new_with_custom_board();
-
-    game.make_move(String::from("D2"), String::from("D3"));
-    position_board();
-
-    game.get_all_possible_moves(String::from("E1"));
-
-
-
-    println!("\n\n");
     
 }
 
@@ -729,20 +788,53 @@ mod tests {
 
     use super::*;
 
-    // #[test]
-    // fn it_works() {
-    //     let result = add(2, 2);
-    //     assert_eq!(result, 4);
-    // }
-
     #[test]
-    fn this_is_cool_stuff(){
-        println!("Hello, world!");
-        assert_eq!(1 + 1, 2)
+    fn main_debug_testing(){
+        // let mut game: Game = Game::new();
+        let mut game: Game = Game::new_with_custom_board(1);
+    
+        game.make_move(String::from("D2"), String::from("D3"));
+        position_board();
+    
+        game.get_all_possible_moves(String::from("E1"));
     }
 
     #[test]
-    fn run_main_function(){
-        main();
+    fn test_check(){
+        let mut game: Game = Game::new_with_custom_board(3);
+    
+        position_board();
+        println!("{:?}", game_board_format(&game.game_board));
+
+        game.make_move(String::from("E6"), String::from("D6"));
+    }
+
+    #[test]
+    fn test_promotion(){
+        let mut game: Game = Game::new_with_custom_board(2);
+    
+        position_board();
+        println!("{:?}", game_board_format(&game.game_board));
+
+        game.set_promotion(String::from("D1"), String::from("Q"));
+
+        println!("{:?}", game_board_format(&game.game_board));
+    }
+
+    #[test]
+    fn test_all_piece_move_logic(){
+        let mut game: Game = Game::new();
+
+        let positions = vec!["A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1",
+        "A2", "B2", "C2", "D2", "E2", "F2", "G2", "H2",
+        "A7", "B7", "C7", "D7", "E7", "F7", "G7", "H7",
+        "A8", "B8", "C8", "D8", "E8", "F8", "G8", "H8"];
+
+    for position in positions {
+        println!("{:?}", game_board_format(&game.game_board));
+        position_board();
+        game.get_all_possible_moves(String::from(position));
+    }
+
     }
 }
